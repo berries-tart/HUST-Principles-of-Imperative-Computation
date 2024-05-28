@@ -1,0 +1,16 @@
+
+int lsr(int x, int n)
+//@requires n > 0 && n < 32;
+{
+    int i;
+    int mask = 1 << 31; //@assert mask < 0;
+    mask = ~mask;
+    int t = x;
+    for (i = 0; i < n; i++)
+    {
+        t = t >> 1;
+        t = t & mask;
+    }
+    //@assert t >= 0;
+    return t;
+}

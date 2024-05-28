@@ -1,0 +1,308 @@
+\documentclass[12pt]{exam}
+\newcommand{\hwnumber}{6}
+\newcommand{\hwname}{Pointers}
+
+%%% begin hw-packages-and-macros.tex
+\usepackage{amsmath}
+\usepackage[left=1in, right=1in, top=1in, bottom=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage[all]{xy}
+\usepackage{wrapfig}
+\usepackage{fancyvrb}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+ \usepackage[UTF8]{ctex}
+\newcommand{\fillinlistings}{
+    \lstset{ %
+    language=C, numbers=left, numberstyle=\footnotesize, stepnumber=1,
+    numbersep=4pt, showspaces=false, showstringspaces=false, tabsize=4,
+    breaklines=true, breakatwhitespace=false,
+    basicstyle=\normalsize\fontfamily{fvm}\selectfont, columns=flexible,
+    mathescape=true, escapeinside={(*}{*)},
+    morekeywords={alloc, allocarray, assert},
+    otherkeywords={@requires, @ensures, @loop_invariant, @assert}
+    }
+}
+\newcommand{\normallistings}{
+    \lstset{ %
+    language=C, numbers=left, numberstyle=\footnotesize, stepnumber=1,
+    numbersep=4pt, showspaces=false, showstringspaces=false, tabsize=4,
+    breaklines=true, breakatwhitespace=false,
+    basicstyle=\footnotesize\fontfamily{fvm}\selectfont, columns=flexible,
+    mathescape=true, escapeinside={(*}{*)},
+    morekeywords={alloc, allocarray, assert},
+    otherkeywords={@requires, @ensures, @loop_invariant, @assert}
+    }
+}
+
+\newcommand{\semester}{Spring 2014}
+
+\newcommand{\Cnought}{C$0$}
+\newcommand{\modulo}{\ \texttt{\%}\ }
+\newcommand{\lshift}{\ \texttt{<<}\ }
+\newcommand{\rshift}{\ \texttt{>>}\ }
+\newcommand{\cgeq}{\ \texttt{>=}\ }
+\newtheorem{task}{Task}
+\newtheorem{ectask}{Extra Credit Task}
+\newtheorem{exercise}{Exercise}
+
+\newcommand{\answerbox}[1]{
+\begin{framed}
+\hspace{5.65in}
+\vspace{#1}
+\end{framed}}
+
+\pagestyle{head}
+
+\headrule \header{\textbf{15-122 Written Homework \hwnumber}}{}{\textbf{Page
+\thepage\ of \numpages}}
+
+\pointsinmargin \printanswers
+
+\setlength\answerlinelength{2in} \setlength\answerskip{0.3in}
+%%% end hw-packages-and-macros.tex
+
+\begin{document}
+
+\addpoints
+\begin{center}
+\textbf{\large{15-122 : Principles of Imperative Computation, \semester
+\\  \vspace{0.2in} Written Homework~\hwnumber
+}}
+
+ \vspace{0.2in}
+
+ \large{Due before class: Thursday, February 27, 2014}
+\end{center}
+
+\vspace{0.5in}
+
+\hbox to \textwidth{Name:\enspace\hrulefill}
+
+
+\vspace{0.2in}
+
+\hbox to \textwidth{Andrew ID:\enspace\hrulefill}
+
+\vspace{0.2in}
+
+\hbox to \textwidth{Recitation:\enspace\hrulefill}
+
+
+\vspace{0.5in}
+
+\noindent The written portion of this week's homework will give you some
+practice working with amortized analysis.
+You can either type up your solutions or write them
+\textit{neatly} by hand, and you should submit your work in class on the
+due date just before lecture begins. Please remember to \textit{staple}
+your written homework before submission.
+\vspace{0.2in}
+
+\begin{center}
+\gradetable[v][questions]
+\end{center}
+
+\vspace{0.2in}
+\begin{center}
+  \Large{You must do this assignment in one of two ways and bring the stapled
+         printout to the handin box on Thursday:
+
+\bigskip
+    1) Write your answers \textit{neatly} on a printout of this PDF.
+
+\bigskip
+    2) Use the TeX template at
+    \url{http://www.cs.cmu.edu/afs/cs.cmu.edu/academic/class/15122-s14/www/theory6.tgz}
+ }
+\end{center}
+
+
+\newpage
+\begin{questions}
+
+
+\question{\textbf{Amortized Analysis}}
+
+Consider a k-bit counter where it costs $2^k$ tokens to flip the kth bit. The rightmost bit (i.e bit 0) costs 1 token to flip. The next bit to its left (bit 1) costs 2 tokens to flip. The next bit to its left (bit 2) costs 4 tokens to flip. And so on. We wish to analyze the time it takes to perform $n = 2^k$ increments of this k-bit counter.
+
+In the worst case, the maximum cost in tokens of an increment occurs when the counter is currently set to all ones and we add 1 to the counter which causes all bits to flip. In this case, the total cost of an increment is:
+\begin{quote}
+$1 + 2 + 2^2 + 2^3 + \ldots + 2^{k-1}$
+\end{quote}
+
+\begin{parts}
+\part[1]
+Show that in the worst case, the total cost in tokens to increment the counter is $O(n)$.
+
+\begin{solution}
+	结出位长为 $k$ 的计数器一轮循环之后，所有情况下的代价消耗为
+	$(2^k) \times (2^0) + (2^{(k-1)}) \times (2^1) + (2^{(k-2)}) \times (2^2) + \dots + (2^1) \times (2^{(k-1)})$
+	$= 2^k + 2^k + 2^k + \dots + 2^k = (2^k) \times k$
+	而一共有的 $2^k$。则位长为 $k$ 的平均代价为 $k$ 个币，其中已包含所有位翻转的两种最坏情况，其余位和最高位相反的情况下翻转。	因此，最坏情况下的平均币值增量为 $k$。$k$ 比特计数器，平均翻转币值消耗为 $k$ 个币，即 $O(n)$。
+\end{solution}
+
+
+Now, we will use amortized analysis to show that although the worst case for an increment is $O(n)$, the amortized cost of an increment over $n$ increments is asymptotically less than this.
+
+\part[1]
+How many tokens are required to flip bit 0 through $n$ increments? (THINK: How often does bit 0 flip when we increment $n$ times?)
+\begin{solution}
+	由于位0每次均翻转，而需要的币数为1，所以$n$次增加需要$n$次翻转，共需要$n$个币。
+\end{solution}
+
+How many tokens are required to flip bit 1 through $n$ increments? (THINK: How often does bit 1 flip when we increment $n$ times?)
+\begin{solution}
+位0每两次翻转，会产生进位，位1将翻转1次，需要的币数为2，所以$n$次增加需要$\lfloor \frac{n}{2} \rfloor$次翻转，共需要$n$个币。
+\end{solution}
+\part[1]
+Based on your answers to the previous questions, how many tokens are required to increment this counter through n increments using big O notation?
+\begin{solution}
+ $O(kn)$
+\end{solution}
+
+Based on your answer above, what is the amortized cost of a single increment using big O notation?
+\begin{solution}
+ $O(n)$
+\end{solution}
+\end{parts}
+\newpage
+
+
+
+\question{\textbf{A New Implementation of Queues}}
+
+Recall the interface for \texttt{stack} that stores
+elements of the type \texttt{elem}:
+
+\begin{quote}
+\begin{verbatim}
+/* Stack Interface */
+stack stack_new();             /* O(1) */
+bool stack_empty(stack S);     /* O(1) */
+void push(elem e, stack S);    /* O(1) */
+elem pop(stack S)              /* O(1) */
+  //@requires !stack_empty(S);
+  ;
+\end{verbatim}
+\end{quote}
+
+We wish to implement a queue using two stacks, called \texttt{instack} and \texttt{outstack}. For example, the picture below shows a queue with five elements and how they might be stored in the two stacks. (Note that in this example, there are 6 ways to store the elements of the queue using the two stacks. This picture is only one possible way to store the queue shown below.)
+\begin{quote}
+\begin{verbatim}
+--------------                   |     |      |  A  |
+A B C D E                        |  E  |      |  B  |
+--------------                   |  D  |      |  C  |
+                                  -----        -----
+                                 instack      outstack
+\end{verbatim}
+
+(left) An abstract queue with A at the front and E at the back.
+
+(right) A representation of this queue using two stacks.
+\end{quote}
+
+Based on the picture above, when we enqueue an element from our queue, we push it on top of the \texttt{instack}. When we dequeue an element from our queue, we pop the top element of the \texttt{outstack}. Of course, an issue occurs if we try to dequeue a non-empty queue and our \texttt{outstack} is empty. In this case, we need to move all of the elements from the \texttt{instack} to the \texttt{outstack} first before we pop the top element of the \texttt{outstack}.
+
+We can define our queue data structure as follows in \Cnought:
+
+\begin{verbatim}
+struct queue {
+    stack instack;
+    stack outstack;
+};
+typedef struct queue* queue;
+
+queue new_queue()
+{
+    queue Q = alloc(struct queue);
+    Q->instack = stack_new();
+    Q->outstack = stack_new();
+    return Q;
+}
+\end{verbatim}
+
+\newpage
+\begin{parts}
+\part[4]
+Write the queue function \texttt{queue\_empty} that returns true if both stacks are empty.
+
+\begin{solution}
+\begin{verbatim}
+bool queue_empty(queue Q)
+{
+   return stack_empty(Q->instack) && stack_empty(Q->outstack);
+}
+\end{verbatim}
+\end{solution}
+
+Write the queue function \texttt{enqueue} based on the description of the data structure above.
+\begin{solution}
+\begin{verbatim}
+void enqueue(elem e, queue Q)
+{
+    push(e, Q->instack);
+}
+\end{verbatim}
+\end{solution}
+
+Write the queue function \texttt{dequeue} based on the description of the data structure above.
+\begin{solution}
+\begin{verbatim}
+elem dequeue(queue Q)
+\\@requires !queue_empty(Q);
+{
+  if (stack_empty(Q->outstack)) {
+    while (!stack_empty(Q->instack)) {
+      push(pop(Q->instack), Q->outstack);
+    }
+  }
+  return pop(Q->outstack);
+}
+\end{verbatim}
+\end{solution}
+
+\newpage
+\part[1]
+We now determine the runtime complexity of the \texttt{enqueue} and \texttt{dequeue} operations. Let $q$ represent the total number of elements in the queue.
+
+What is the worst-case runtime complexity of each of the following queue operations based on the description of the data structure implementation given above? Write ONE sentence that explains each answer.
+
+\begin{solution}
+
+enqueue:   $O($1$)$
+
+直接Q->instack入栈即可。
+
+\vspace{0.75in}
+dequeue:   $O($q$)$
+
+最坏情况是Q->outstack栈空，需要将Q->instack中所有的元素依次出栈，
+并入栈到Q->outstack，最后将Q->outstack栈顶元素出栈即可。
+
+\vspace{0.75in}
+\end{solution}
+
+\part[2]
+\vspace{0.5in}
+Using amortized analysis, we can show that the worst-case complexity of a valid sequence of $n$ queue operations, where each operation is either an enqueue or dequeue operation, is $O(n)$. This means that the amortized cost per operation is $O(1)$, even though a single operation might require more than constant time.
+
+Assume that each push and each pop operation requires one token to pay for the operation.
+
+How many tokens in total are required to enqueue an element?  State for what purpose each token is used.
+\begin{solution}（Your answer for the number of tokens should be a constant integer since the amortized cost should be $O(1)$。）
+	每个元素入队均是入栈Q->instack，而每个元素出栈，均需先从Q->instack出栈，再入栈Q->outstack，最后在队首时执行出队操作，即出栈Q->outstack。每次入栈出栈均需要一个币，所以每个元素均摊4个币，即 $O(1)$。
+\end{solution}
+How many tokens are required to dequeue an element?  When the \texttt{outstack} is empty and we move elements from \texttt{instack} to \texttt{outstack}, why does this not require additional tokens?
+
+\begin{solution}（Your answer for the number of tokens should be a constant integer since the amortized cost should be $O(1)$。）
+	元素入队需要1个代币，$O(1)$，元素出队需要3个代币，$O(3)$，即 $O(1)$。
+\end{solution}
+
+\end{parts}
+
+
+\end{questions}
+\end{document}

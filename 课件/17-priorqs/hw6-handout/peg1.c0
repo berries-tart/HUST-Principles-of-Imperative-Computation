@@ -1,0 +1,30 @@
+/*
+ * Peg solitaire solver
+ *
+ * 15-122 Principles of Imperative Computation */
+
+#use <args>
+#use <conio>
+#use <util>
+
+typedef ____ move;
+
+int row_start(move m)
+  ;
+
+int col_start(move m)
+  ;
+
+int row_end(move m)
+  ;
+
+int col_end(move m)
+  ;
+
+int peg_solve(board B, stack S)
+//@requires is_board(B);
+//@requires num_pegs(B) >= 1;
+//@requires stack_empty(S);
+//@ensures is_board(B);
+//@ensures result >= 1;
+  ;

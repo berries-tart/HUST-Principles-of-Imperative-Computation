@@ -1,0 +1,15 @@
+int[] array_part(int[] A, int i, int j)
+//@requires i >= 0 && i <= j && j < \length(A);
+//@ensures \length(\result) == j-i+1;
+{
+    int lenRe = j - i + 1;
+    int[] arrayRe = alloc_array(int, lenRe);
+    for (int pos = 0; pos < lenRe; pos++)
+    //@loop_invariant lenRe >= 0;
+    //@loop_invariant pos >= 0 && pos <= lenRe;
+    {
+        arrayRe[pos] = A[i + pos];
+    }
+    //@assert \length(arrayRe) == lenRe;
+    return arrayRe;
+}

@@ -1,0 +1,40 @@
+int POW(int x, int y)
+//@requires y >= 0;
+{
+    if (y == 0)
+        return 1;
+    else
+    {
+        int a = POW(x, y - 1);
+        int b = x * a;
+        if (x != 0 && b / x != a)
+            error("Overflow");
+        else
+            return b;
+    }
+}
+
+int f(int x, int y)
+//@requires y >= 0;
+//@ensures \result == POW(x, y);
+{
+    int r = 1;
+    int b = x; // base
+    int e = y; // exponent
+    while (e > 0)
+    //@loop_invariant e >= 0;
+    //@loop_invariant r * POW(b, e) == POW(x, y);
+    {
+        if (e % 2 == 1)
+        {
+            int temp = b * r;
+            if (b != 0 && temp / b != r)
+                error("Overflow");
+            r = temp;
+        }
+        b = b * b;
+        e = e / 2;
+    }
+    //@assert e == 0;
+    return r;
+}

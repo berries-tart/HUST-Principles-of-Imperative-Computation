@@ -1,0 +1,36 @@
+//
+#use < string>
+#use < conio>
+
+void output(string[] A, int alen)
+//@requires alen == \length(A);
+{
+    for (int i = 0; i < alen; i++)
+    //@loop_invariant 0 <= i && i <= alen;
+    {
+        string s = string_fromint(i);
+        s = string_join(s, " : ");
+        s = string_join(s, A[i]);
+        println(s);
+    }
+}
+
+int main()
+{
+
+    int alen = 4;
+    string[] A = alloc_array(string, alen);
+    A[0] = "hust";
+    A[1] = "husst";
+    A[2] = "huuust";
+    A[3] = "hst";
+    println("Original:");
+    output(A, alen);
+    sort(A, 0, alen);
+    println("First:");
+    output(A, alen);
+    sort(A, 0, alen);
+    println("Second:");
+    output(A, alen);
+    return 0;
+}

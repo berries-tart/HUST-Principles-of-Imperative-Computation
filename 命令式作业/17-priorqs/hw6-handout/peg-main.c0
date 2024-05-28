@@ -1,0 +1,129 @@
+/* 
+ * Peg solitaire main file 
+ * Includes utilities for verifying moves
+ * 
+ * 15-122 Principles of Imperative Computation
+ * Frank Pfenning */
+
+#use <args>
+#use <conio>
+
+/* Verifying moves */
+
+void print_coords(int row, int col) {
+  printint(row); print(":"); printint(col);
+  return;
+}
+
+bool is_coord(int x) {
+  return 0 <= x && x < 8;
+}
+
+bool legal_move(board B, int row1, int col1, int row2, int col2)
+//@requires is_board(B);
+{
+  if (!(is_coord(row1) && is_coord(col1)
+        && is_coord(row2) && is_coord(col2)))
+    return false;
+  if (!((abs(row1-row2) == 2 && col1 == col2)
+        || (abs(col1-col2) == 2 && row1 == row2)))
+    return false;
+  int i = 8*row1+col1;
+  int k = 8*row2+col2;
+  int j = (i+k)/2;
+  if (!(B[i] == 1 && B[j] == 1 && B[k] == 0))
+    return false;
+  return true;
+}
+
+void apply_move(board B, int row1, int col1, int row2, int col2)
+//@requires is_board(B);
+//@requires legal_move(B, row1, col1, row2, col2);
+//@ensures is_board(B);
+{
+  int i = 8*row1+col1;
+  int k = 8*row2+col2;
+  int j = (i+k)/2;
+  B[i] = 1-B[i];
+  B[j] = 1-B[j];
+  B[k] = 1-B[j];
+  return;
+}
+
+/* B must be in initial position */
+/* first move must be on top of S */
+
+bool verify_solution(board B, stack S) {
+  /* reapply moves, while checking them */
+  while (!stack_empty(S)) {
+    move m = pop(S);
+    int row1 = row_start(m);
+    int col1 = col_start(m);
+    int row2 = row_end(m);
+    int col2 = col_end(m);
+    print_coords(row1, col1);
+    print(" -> ");
+    print_coords(row2, col2);
+    print("\n");
+
+    if (legal_move(B, row1, col1, row2, col2)) {
+      apply_move(B, row1, col1, row2, col2);
+    } else {
+      print("Last move was invalid\n");
+      return false;
+    }
+  }
+  if (!(num_pegs(B) == 1)) {
+    print("Final position not winning\n");
+    return false;
+  }
+  return true;
+}
+
+/* Main funciton */
+
+int peg_main(board B_init) {
+  print_board(B_init);
+
+  /* make copy of initial board */
+  int[] B = alloc_array(int, 8*8);
+  array_copy(B, B_init, 8*8);
+
+  stack S = stack_new(); /* start with empty solution path */
+  int final_pegs = peg_solve(B, S);
+  if (final_pegs == 1) {
+    /* found solution; verify and print */
+    /* verify starting from initial position */
+    if (verify_solution(B_init, S)) return 0;
+    else return -1;
+  } else {
+    return final_pegs;
+  }
+}
+
+int main() {
+  int[] B_init = alloc_array(int, 8*8);
+
+  args_t args = args_parse();
+  int argc = args->argc;
+  if (argc == 0) {
+    print("Using English board as default\n");
+    init_board(B_init);
+  } else if (argc == 1) {
+    read_board(args->argv[0], B_init, 8*8);
+  }
+
+  int ans = peg_main(B_init);
+  
+  if (ans == 0) {
+    println("Solution verified!");
+  } else if (ans == -1) {
+    println("Solution check failed!");
+  } else {
+    print("No solution found, closest attempt got down to "); 
+    if (ans < 10) print("  pegs.\b\b\b\b\b\b\b");
+    else print("   pegs.\b\b\b\b\b\b\b\b");
+  }
+
+  return ans;
+}

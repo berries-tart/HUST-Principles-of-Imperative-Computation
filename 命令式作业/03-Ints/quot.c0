@@ -1,0 +1,30 @@
+int quot(int x, int y)
+//@requires y != 0;
+//@ensures \result == x/y;
+{
+    int a = x;
+    int b = y;
+    int sa = 1;
+    int sb = 1;
+    
+    if (a < 0) {
+        a = -a;
+        sa = -1;
+    }
+    
+    if (b < 0) {
+        b = -b;
+        sb = -1;
+    }
+    
+    int c;
+    for (c = 0; a >= b; c++)
+    //@loop_invariant a >= 0 && b > 0 && c*b + a == sa*x;
+    {
+        a = a - b;
+    }
+    
+    c = sa*sb*c;
+    //@assert c*sa*y+a == sa*x;
+    return c;
+}

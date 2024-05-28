@@ -1,0 +1,29 @@
+//
+int POW(int x, int y)
+//@requires y >= 0;
+{
+    if (y == 0)
+        return 1;
+    else
+        return x*POW(x, y-1);
+}
+
+int f(int x, int y)
+//@requires y >= 0;
+//@ensures \result == POW(x, y);
+{
+    int r = 1;
+    int b = x;  // base
+    int e = y;  // exponent
+    while(e > 0)
+    //@loop_invariant e >= 0;
+    //@loop_invariant r * POW(b, e) == POW(x, y);
+    {
+        if(e%2 == 1)
+            r = b*r;
+        b = b*b;
+        e = e/2;
+    }
+    //@assert e == 0;
+    return r;
+}

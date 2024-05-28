@@ -1,0 +1,158 @@
+This note is about how you can determine why your slow peg3.c0
+implementation is slow. Do you need to improve the order in which you
+consider moves? Do you need better hash table functions?  Or is it
+something else?
+
+The first thing you should do is probably to see how many boards you
+need to "give up on" in order to solve various problems - little
+changes to the ordering of moves can make a big difference here. The
+first solution I wrote was very bad in this respect (Solution
+Simmons), but the first solution that Frank Pfenning wrote ended up
+being accidentally absurdly good on the English board (Solution
+Pfenning) - the difference was primarily in the move selection
+strategy used. This is described in the first section below.
+
+The second thing you should do is to run the provided peg solitaire
+hash table benchmark to see if you have a reasonable hash table client
+implementation. Both of our hash table client functions get the job
+done reasonably well. This is described in the second section below.
+
+The third thing you can do is analyze how long your code spends
+running each function, though this is a bit more sophisticated than
+the other options. 
+
+=====================================
+Analyzing the move selection strategy
+=====================================
+
+Record the number of boards you have declared to be completely
+unsolvable by peg3 - the easiest way to do this is to call the
+ht_size(H) function before you exit the solver. If you have a
+better/luckier move selection strategy, this number will be
+lower. (See Appendix A in the writeup for some advice here.)
+
+Solution Simmons
+- English: proves 1,929,870 boards unsolvable
+- French1: proves 1,709,120 boards unsolvable
+- French2: proves 12,692,219 boards unsolvable
+
+Solution Pfenning
+- English: proves 868 boards unsolvable
+- French1: proves 1,052,172 boards unsolvable
+- French2: proves 2,790,244 boards unsolvable
+
+Analysis: the easiest way for me to improve the speed of my code -
+especially on the english board, which must be solved fast to get full
+credit - is probably to experiment with different ways of ordering the
+moves. Many very simple ways of ordering moves will do very well -
+Frank's strategy, described in Appendix A of the writeup, is not
+sophisticated at all.
+
+===========================
+Benchmarking the hash table
+===========================
+
+Pegmark is a benchmark that makes up a bunch of fake "test boards"
+based on the English board and inserts them into your hashtable. I
+compiled pegmark on both solutions by typing 
+
+ $ cc0 peg-client.c0 lib/*.c0 peg3.c0 pegmark.c0
+ $ time ./a.out
+
+You need to write one function for the client-side implementation,
+htelem_of_board, that takes a board and returns an htelem. The board
+that is passed to this function *will be changed* by the later code,
+so you can't count on the board staying the same.
+
+If you have an incorrect implementation of the hash table client
+functions, the total number of recorded boards will probably be
+wrong. If you have a suboptimal hash function, then there will
+probably be lots of chains of size 0 and lots of very long chains. If
+equality checks are slow or your hashing function is rather slow, then
+you will probably take much more than 15 seconds to run the full
+pegmark.
+
+Professor Pfenning's solution had a hash function that gave him very
+good distribution throughout the hashtable.
+
+Hash table distribution: how many chains have size... 
+...0:   569695
+...1:   278427
+...2:   102842
+...3:   34063
+...4:   10554
+...5:   3142
+...6:   927
+...7:   246
+...8:   77
+...9:   22
+...10+: 5
+Longest chain: 10
+
+My original solution did not do as good of a job with distribution,
+but it was basically good enough for the purposes of this assignment:
+
+Hash table distribution: how many chains have size... 
+...0:   771013
+...1:   94521
+...2:   46943
+...3:   28044
+...4:   18481
+...5:   12257
+...6:   8279
+...7:   5773
+...8:   4090
+...9:   3011
+...10+: 7588
+Longest chain: 31
+
+With a few minor tweaks to my hash function, I was able to get a
+better distribution and (slightly) better performance:
+
+Hash table distribution: how many chains have size... 
+...0:   524449
+...1:   334713
+...2:   110650
+...3:   25163
+...4:   4342
+...5:   607
+...6:   64
+...7:   11
+...8:   1
+...9:   0
+...10+: 0
+Longest chain: 8
+
+==============
+Full profiling
+==============
+
+You can tell the compiler to produce profiling information which can
+then be used by a tool called gprof. To have the gcc compiler produce
+profiling information, pass the "-c-pg" option to the cc0 compiler
+(which in turn passes the "-pg" option to the gcc compiler).
+
+$ cc0 -r unsafe -c-O2 -c-pg -o peg3 peg3.c0 peg-test.c0 peg-main.c0
+$ ./peg3
+
+Running the peg3 executable compiled in this way will produce a file
+called gmon.out, which you can then feed to gprof.
+
+$ gprof peg3 gmon.out 
+
+The output of this command, which you could redirect to a file
+gprof.txt by typing "gprof peg3 gmon.out > gprof.txt" instead, records
+an approximation of the amount of time you spend in each function.
+
+The profiling tool, gprof, that this script is using is *not* very
+good at estimating the total amount of time your program takes. What
+it does reasonably well is estimate which function you spend the most
+time in, which function you spend the second most time in, etc, in
+addition to the number of times you call each function. Perhaps you're
+calling your compress function hundreds of thousands of time - that's
+a sign that you should be rethinking when and how you compress
+boards. And so on.
+
+The file gprof.out is full of dense other information too. To
+interpret this you'd probably need to read a bit about gprof. Possibly
+start here: http://www.cs.utah.edu/dept/old/texinfo/as/gprof.html#SEC5

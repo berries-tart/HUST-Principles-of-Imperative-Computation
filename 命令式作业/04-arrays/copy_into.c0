@@ -1,0 +1,16 @@
+
+int copy_into(int[] source, int i, int n, int[] target, int j)
+//@requires i >= 0 && n > 0 && i+n-1 < \length(source);
+//@requires j >= 0 && j+n-1 < \length(target);
+//@ensures \result == j+n-1;
+{
+    int pos;
+    for (pos = 0; pos < n; pos++)
+    //@loop_invariant pos >= 0 && pos <= n;
+    //@loop_invariant j+pos < \length(target);
+    //@loop_invariant pos == 0 || target[j+pos-1] == source[i+pos-1];
+    {
+        target[j + pos] = source[i + pos];
+    }
+    return j + pos - 1;
+}

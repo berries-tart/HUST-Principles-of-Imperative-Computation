@@ -1,0 +1,113 @@
+
+
+#use <args>
+#use <conio>
+#use <util>
+
+typedef int[] move;
+
+int row_start(move m)
+{
+    return m[0] / 8;
+}
+
+int col_start(move m)
+{
+    return m[0] % 8;
+}
+
+int row_end(move m)
+{
+    return m[2] / 8;
+}
+
+int col_end(move m)
+{
+    return m[2] % 8;
+}
+
+bool is_valid_move(board B, move m)
+//@requires is_board(B);
+{
+    if (B[m[0]] == 1 && B[m[1]] == 1 && B[m[2]] == 0 &&
+        ((row_start(m) == row_end(m) && abs(col_start(m) - col_end(m)) == 2) ||
+         (col_start(m) == col_end(m) && abs(row_start(m) - row_end(m)) == 2)))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+void excute_move(board B, move m)
+//@requires is_board(B);
+//@requires is_valid_move(B, m);
+{
+    B[m[0]] = 0;
+    B[m[1]] = 0;
+    B[m[2]] = 1;
+}
+
+void find_valid_moves(board B, stack S)
+//@requires is_board(B);
+//@requires stack_empty(S);
+{
+    for (int i = 0; i < 8 * 8; i++)
+    {
+        int[] arr = alloc_array(int, 4);
+        arr[0] = i - 16;
+        arr[1] = i + 16;
+        arr[2] = i - 2;
+        arr[3] = i + 2;
+        for (int j = 0; j < 4; j++)
+        {
+            if (arr[j] >= 0)
+            {
+                move m = alloc_array(int, 3);
+                m[0] = i;
+                m[1] = (i + arr[j]) / 2;
+                m[2] = arr[j];
+                if (is_valid_move(B, m))
+                {
+                    push(S, m);
+                }
+            }
+        }
+    }
+}
+
+int solve(board B, stack S)
+//@requires is_board(B);
+//@requires num_pegs(B) >= 1;
+//@ensures is_board(B);
+//@ensures \result >= 1;
+{
+    stack moves = stack_new();
+    find_valid_moves(B, moves);
+    if (stack_empty(moves))
+    {
+        print("empty\n");
+        return num_pegs(B);
+    }
+    move m = pop(moves);
+    excute_move(B, m);
+    int ans = solve(B, S);
+    if (ans == 1)
+    {
+        push(S, m);
+    }
+    return ans;
+}
+
+int peg_solve(board B, stack S)
+//@requires is_board(B);
+//@requires num_pegs(B) >= 1;
+//@requires stack_empty(S);
+//@ensures is_board(B);
+//@ensures \result >= 1;
+{
+    return solve(B, S);
+}
+

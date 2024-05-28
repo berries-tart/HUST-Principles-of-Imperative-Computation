@@ -1,0 +1,341 @@
+\documentclass[12pt]{exam}
+\newcommand{\hwnumber}{7}
+\newcommand{\hwname}{Pointers}
+
+%%% begin hw-packages-and-macros.tex
+\usepackage{amsmath}
+\usepackage[left=1in, right=1in, top=1in, bottom=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{color}
+\usepackage[all]{xy}
+\usepackage{wrapfig}
+\usepackage{fancyvrb}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage[UTF8]{ctex}
+\newcommand{\fillinlistings}{
+    \lstset{ %
+    language=C, numbers=left, numberstyle=\footnotesize, stepnumber=1,
+    numbersep=4pt, showspaces=false, showstringspaces=false, tabsize=4,
+    breaklines=true, breakatwhitespace=false,
+    basicstyle=\normalsize\fontfamily{fvm}\selectfont, columns=flexible,
+    mathescape=true, escapeinside={(*}{*)},
+    morekeywords={alloc, allocarray, assert},
+    otherkeywords={@requires, @ensures, @loop_invariant, @assert}
+    }
+}
+\newcommand{\normallistings}{
+    \lstset{ %
+    language=C, numbers=left, numberstyle=\footnotesize, stepnumber=1,
+    numbersep=4pt, showspaces=false, showstringspaces=false, tabsize=4,
+    breaklines=true, breakatwhitespace=false,
+    basicstyle=\footnotesize\fontfamily{fvm}\selectfont, columns=flexible,
+    mathescape=true, escapeinside={(*}{*)},
+    morekeywords={alloc, allocarray, assert},
+    otherkeywords={@requires, @ensures, @loop_invariant, @assert}
+    }
+}
+
+\newcommand{\semester}{Spring 2014}
+
+\newcommand{\Cnought}{C$0$}
+\newcommand{\modulo}{\ \texttt{\%}\ }
+\newcommand{\lshift}{\ \texttt{<<}\ }
+\newcommand{\rshift}{\ \texttt{>>}\ }
+\newcommand{\cgeq}{\ \texttt{>=}\ }
+\newtheorem{task}{Task}
+\newtheorem{ectask}{Extra Credit Task}
+\newtheorem{exercise}{Exercise}
+
+\newcommand{\answerbox}[1]{
+\begin{framed}
+\hspace{5.65in}
+\vspace{#1}
+\end{framed}}
+
+\pagestyle{head}
+
+\headrule \header{\textbf{15-122 Written Homework \hwnumber}}{}{\textbf{Page
+\thepage\ of \numpages}}
+
+\pointsinmargin \printanswers
+
+\setlength\answerlinelength{2in} \setlength\answerskip{0.3in}
+%%% end hw-packages-and-macros.tex
+
+\begin{document}
+
+\addpoints
+\begin{center}
+\textbf{\large{15-122 : Principles of Imperative Computation, \semester
+\\  \vspace{0.2in} Written Homework~\hwnumber
+}}
+
+ \vspace{0.2in}
+
+ \large{Due before class: Thursday, March 6, 2014}
+\end{center}
+
+\vspace{0.5in}
+
+\hbox to \textwidth{Name:\enspace\hrulefill}
+
+
+\vspace{0.2in}
+
+\hbox to \textwidth{Andrew ID:\enspace\hrulefill}
+
+\vspace{0.2in}
+
+\hbox to \textwidth{Recitation:\enspace\hrulefill}
+
+
+\vspace{0.5in}
+
+\noindent The written portion of this week's homework will give you some
+practice working with hash functions and hash tables.
+You can either type up your solutions or write them
+\textit{neatly} by hand, and you should submit your work in class on the
+due date just before lecture begins. Please remember to \textit{staple}
+your written homework before submission.
+\vspace{0.2in}
+
+\begin{center}
+\gradetable[v][questions]
+\end{center}
+
+\vspace{0.2in}
+\begin{center}
+  \Large{You must do this assignment in one of two ways and bring the stapled
+         printout to the handin box on Thursday:
+
+\bigskip
+    1) Write your answers \textit{neatly} on a printout of this PDF.
+
+\bigskip
+    2) Use the TeX template at
+    \url{http://www.cs.cmu.edu/afs/cs.cmu.edu/academic/class/15122-s14/www/theory7.tgz}
+ }
+\end{center}
+
+
+\newpage
+\begin{questions}
+
+
+\question{\textbf{Dealing with Collisions}}
+
+Consider three implementations of a hash table that use different techniques
+for resolving collisions.
+
+In the first hash table, we use separate chaining to resolve collisions.
+If the size of the hash table is $m$, then key $k$ is added to the linked
+list that is referenced at index $h(k) \mod m$ in the table, where $h$ is the hash function
+being used. To resolve collisions, all keys that
+hash to the same index are stored in the same linked list (chain).
+
+In the second hash table, we use linear probing to resolve collisions.
+In linear probing, if a key $k$ is inserted or looked up, on
+the $(i+1)$st attempt we look at index $(h(k) + i) \mod m$, where $h$
+is the hash function being used and $m$ is the size of the hash table. (We
+succeed in insert if we find NULL there; we succeed in lookup if we
+find an element there with matching key.)
+
+\begin{quote}
+For example, if the hash function returns 4 and there is a key stored at index 4
+of the hash table, we try index 5, then 6, then 7, etc. (with wraparound
+back to the beginning of the table if necessary) until we find an unoccupied cell.
+\end{quote}
+
+In the third hash table, we use quadratic probing to resolve collisions.
+In quadratic probing, we follow a similar procedure as in linear probing,
+except we look at index $(h(k) + i^2) \mod m$ on the $(i+1)$st attempt.
+
+\begin{quote}
+For example, if the hash function returns 4 and there is a key stored at index 4
+of the hash table, we try index 5 (= 4 + 1), then index 8 (= 4 + 4), then index 13 (= 4 + 9), etc. (with wraparound
+back to the beginning of the table if necessary) until we find an unoccupied cell.
+\end{quote}
+
+NOTE: for this question, the hash function $h(k)$ does not perform
+a modulus by the table size; this is done afterwards.  Also, for this question, you may assume
+that there is no integer overflow (i.e. even for large i, $i^2$ will
+still be non-negative).
+
+\vspace{0.5in}
+\begin{parts}
+
+\part[1]
+For a hash table of size $m$ with $n$ keys, if $n = 2m$ and the keys are \emph{not} evenly distributed and separate chaining is used to resolve collisions, what is the worst-case runtime complexity of a search for a specific key using big O notation?
+\begin{solution}
+最坏情况下所有元素都在一条链上，平均查找次数为 $ \frac{{1+2+ \ldots + n}}{{n}} = \frac{{n+1}}{2} )$
+\end{solution}
+
+For a hash table of size $m$ with $n$ keys, if $n = 2m$ and the keys are evenly distributed and separate chaining is used to resolve collisions, what is the worst-case runtime complexity of a search for a specific key using big O notation?
+
+\begin{solution}
+最坏情况下所有元素都在一条链上，平均查找次数为  $ \frac{{n \cdot 1 + n \cdot 2}}{n} = 3 $
+\end{solution}
+
+\newpage
+\part[2] Assume that we hash a set of integer keys
+into a hash table of capacity $m = 13$ using a hash function
+$h(k) = k$.
+
+Show how the set of keys below will be stored in the hash table by drawing
+the \emph{final} state of each chain of the table after all of the keys are inserted, one
+by one, in the order shown. If a chain is empty, indicate NULL where
+appropriate.
+
+\begin{verbatim}
+
+54, 23, 67, 88, 39, 75, 49, 5
+
+\end{verbatim}
+
+\begin{solution}
+\begin{verbatim}
+    ----
+ 0 | 39 |
+    ----    
+ 1 |NULL|
+    ----       ---- 
+ 2 | 54 | --> | 67 |
+    ----       ---- 
+ 3 | 23 |
+    ----     
+ 4 |NULL|
+    ----
+ 5 | 5  |
+    ----
+ 6 |NULL|
+    ----
+ 7 |NULL|
+    ----
+ 8 |NULL|
+    ----
+ 9 |NULL|
+    ----       ----       ---- 
+10 | 88 | --> | 75 | --> | 49 |
+    ----       ----       ----
+11 |NULL|
+    ----
+12 |NULL|
+    ----
+\end{verbatim}
+
+\end{solution}
+\newpage
+\part[2]
+Show where the sequence of keys shown below are stored
+in the hash table if they are inserted one by one, in the order shown,
+with $h(k) = k$ and $m$ = 13,
+using linear probing to resolve collisions.
+
+\begin{verbatim}
+
+54, 23, 67, 88, 39, 75, 49, 5
+
+\end{verbatim}
+
+\begin{solution}
+\begin{verbatim}
+
+   0    1    2    3    4    5    6    7    8    9   10   11   12
+ ----------------------------------------------------------------
+| 39 |    | 54 | 23 | 67 | 5  |    |    |    |    | 88 | 75 | 49 |
+ ----------------------------------------------------------------
+
+\end{verbatim}
+\end{solution}
+
+
+\part[1]
+Show where the sequence of keys shown below are stored
+in the hash table if they are inserted one by one, in the order shown,
+with $h(k) = k$ and $m$ = 13,
+using quadratic probing to resolve collisions.
+
+\begin{verbatim}
+
+54, 23, 67, 88, 39, 75, 49, 5
+
+\end{verbatim}
+
+\begin{solution}
+\begin{verbatim}
+
+   0    1    2    3    4    5    6    7    8    9   10   11   12
+----------------------------------------------------------------
+| 39 | 49 | 54 | 23 |    | 5  | 67 |    |    |    | 88 | 75 |   |
+----------------------------------------------------------------
+
+\end{verbatim}
+\end{solution}
+
+\part[1]
+
+Quadratic probing suffers from one problem that linear probing does not.
+In particular, given a non-full hashtable, insertions with linear probing will always
+succeed, while insertions with quadratic probing may or may not succeed (i.e. they may
+never find an open spot to insert).
+Using $h(k) = k$ as your hash function and $m = 6$ as your table capacity,
+give an example of a non-full hashtable and a key that cannot be successfully inserted
+using quadratic probing.
+
+\begin{solution}
+(HINT: Start by inserting the keys 36, 78, 12, 90.)
+\begin{verbatim}
+
+       0    1    2    3    4    5       Key to insert: 6
+     -----------------------------
+    |    |    |    |    |    |    |
+     -----------------------------
+\end{verbatim}
+\end{solution}
+
+\end{parts}
+
+\newpage
+\question{\textbf{Strings as Keys}}
+
+In a popular programming language, strings are hashed using the following function:
+\[
+(s[0]*31^{p-1} + s[1]*31^{p-2} + ... + s[p-2]*31^1 + s[p-1]*31^0)
+\ \texttt{\%}\  m
+\]
+where $s[i]$ is the ASCII code for the $i$th character of string $s$, $p$ is the length of the string,
+and $m$ is the size of the hash table.
+
+\begin{parts}
+
+\part[1]
+If 15105 strings were stored in a hash table of size 3021 using separate chaining, what would the
+load factor of the table be?  If the strings above were equally distributed in the hash table,
+what does the load factor tell you about the chains?
+\begin{solution}
+负载因子 $= \frac{15105}{3021} \approx 5$;
+
+负载因子表示哈希表中平均每个槽位的负载程度。当负载因子较高时，每个槽位中可能包含较长的链，这可能会导致查找时间增加。
+\end{solution}
+
+
+
+\part[2]
+Using the hash function above with a table size of 3021,
+give an example of two different strings that would ``collide'' in the hash table and would be
+stored in the same chain. Show your work. (Use short strings please!)
+\begin{solution}
+对于"hust"，$(104 \times 31^3 + 117 \times 31^2 + 115 \times 31 + 116) \mod 3021 = 304$
+
+\end{solution}
+
+
+
+\end{parts}
+
+
+
+\end{questions}
+\end{document}

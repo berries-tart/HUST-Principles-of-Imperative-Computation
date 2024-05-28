@@ -1,0 +1,12 @@
+int f(int[] A)
+//@requires \length(A) > 0;
+{
+    int sum = 0;
+    int i = 0;
+    for (i; A[i] != 0; i++)
+    //@loop_invariant i >= 0;
+    {
+        sum += A[i];
+    }
+    return sum;
+}

@@ -1,0 +1,144 @@
+#use < string>
+#use < parse>
+#use < conio>
+#use < args>
+#use < util>
+
+/* Return true: clac top-level interpreter will expect more input */
+/* Return false: clac top-level interpreter will exit */
+bool eval(queue Q, stack S)
+//@ensures \result == false || queue_empty(Q);
+{
+    while (!queue_empty(Q))
+    {
+        string tok = deq(Q);
+        print(tok);
+        print("\n");
+        if (string_equal(tok, "print"))
+        {
+            if (stack_empty(S))
+                error("stack empty!\n");
+            int x = pop(S);
+            printint(x);
+            print("\n");
+        }
+        else if (string_equal(tok, "quit"))
+        {
+            return false;
+        }
+        else if (string_equal(tok, "+"))
+        {
+            if (stack_empty(S))
+                error("operator + need two numbers in stack!\n");
+            int y = pop(S);
+            if (stack_empty(S))
+                error("operator + need two numbers in stack!\n");
+            int x = pop(S);
+            push(S, x + y);
+        }
+        else if (string_equal(tok, "-"))
+        {
+            if (stack_empty(S))
+                error("operator - need two numbers in stack!\n");
+            int y = pop(S);
+            if (stack_empty(S))
+                error("operator - need two numbers in stack!\n");
+            int x = pop(S);
+            push(S, x - y);
+        }
+        else if (string_equal(tok, "*"))
+        {
+            if (stack_empty(S))
+                error("operator * need two numbers in stack!\n");
+            int y = pop(S);
+            if (stack_empty(S))
+                error("operator * need two numbers in stack!\n");
+            int x = pop(S);
+            push(S, x * y);
+        }
+        else if (string_equal(tok, "/"))
+        {
+            if (stack_empty(S))
+                error("operator / need two numbers in stack!\n");
+            int y = pop(S);
+            if (stack_empty(S))
+                error("operator / need two numbers in stack!\n");
+            int x = pop(S);
+            if (y == 0 || (x == int_min() && y == -1))
+                error("operator / overflow!\n");
+            push(S, x / y);
+        }
+        else if (string_equal(tok, "%"))
+        {
+            if (stack_empty(S))
+                error("operator %% need two numbers in stack!\n");
+            int y = pop(S);
+            if (stack_empty(S))
+                error("operator %% need two numbers in stack!\n");
+            int x = pop(S);
+            if (y == 0 || (x == int_min() && y == -1))
+                error("operator %% overflow!\n");
+            push(S, x % y);
+        }
+        else if (string_equal(tok, "<"))
+        {
+            if (stack_empty(S))
+                error("operator < need two numbers in stack!\n");
+            int y = pop(S);
+            if (stack_empty(S))
+                error("operator < need two numbers in stack!\n");
+            int x = pop(S);
+            push(S, x < y ? 1 : 0);
+        }
+        else if (string_equal(tok, "drop"))
+        {
+            if (stack_empty(S))
+                error("drop need a number in stack!\n");
+            pop(S);
+        }
+        else if (string_equal(tok, "swap"))
+        {
+            if (stack_empty(S))
+                error("swap need two numbers in stack!\n");
+            int y = pop(S);
+            if (stack_empty(S))
+                error("swap < need two numbers in stack!\n");
+            int x = pop(S);
+            push(S, y);
+            push(S, x);
+        }
+        else if (string_equal(tok, "dup"))
+        {
+            if (stack_empty(S))
+                error("dup need a number in stack!\n");
+            int x = pop(S);
+            push(S, x);
+            push(S, x);
+        }
+        else if (string_equal(tok, "rot"))
+        {
+            if (stack_empty(S))
+                error("rot need three numbers in stack!\n");
+            int z = pop(S);
+            if (stack_empty(S))
+                error("rot need three numbers in stack!\n");
+            int y = pop(S);
+            if (stack_empty(S))
+                error("rot need three numbers in stack!\n");
+            int x = pop(S);
+            push(S, y);
+            push(S, z);
+            push(S, x);
+        }
+        else
+        {
+            int *p = parse_int(tok, 10);
+            if (p == NULL)
+            {
+                error(string_join("undefined token ", tok));
+            }
+            push(S, *p);
+        }
+    }
+    return true;
+}

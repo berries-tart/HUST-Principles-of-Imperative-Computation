@@ -1,0 +1,25 @@
+string int2hex(int x)
+//@ensures (*(parse_int(\result, 16))) == x;
+{
+    int mask = 0xf;
+    int i;
+    int temp = x;
+    int xnum = 0;
+    char cnum;
+    string se = "0x";
+    string s = "";
+    for (i = 0; i < 8; i++)
+    //@loop_invariant xnum >= 0 && xnum <= 15;
+    {
+        xnum = temp & mask;
+        if (xnum < 10)
+            cnum = char_chr(xnum + char_ord('0'));
+        else
+            cnum = char_chr(xnum - 10 + char_ord('a'));
+        s = string_join(string_fromchar(cnum), s);
+        temp = temp >> 4;
+    }
+    se = string_join(se, s);
+    //@assert temp == -1 || temp == 0;
+    return se;
+}

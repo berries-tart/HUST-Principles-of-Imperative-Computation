@@ -1,0 +1,22 @@
+//
+void push(stack S, elem e)
+//@requires is_stack(S);
+//@ensures is_stack(S);
+{
+    if (S->top + 1 == S->capacity)
+    {
+        int taSize = 2 * S->capacity;
+        elem[] ta = alloc_array(elem, taSize);
+        //@assert(\length(ta) == 2 * \length(S->data));
+        for (int i = 1; i < S->capacity; i++)
+        //@loop_invariant 1 <= i && i <= S->capacity && i <= taSize;
+        {
+            ta[i] = S->data[i];
+        }
+        S->data = ta;
+        S->capacity = taSize;
+    }
+    assert(S->top + 1 < S->capacity);
+    S->top++;
+    S->data[S->top] = e;
+}

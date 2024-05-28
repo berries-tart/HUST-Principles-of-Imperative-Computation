@@ -1,0 +1,117 @@
+/* Peg solitaire utilities
+ *
+ * 15-122 Principles of Imperative Computation, Fall 2012
+ * Frank Pfenning
+ */
+
+#use <string>
+#use <conio>
+#use <file>
+
+/* peg boards are int arrays */
+typedef int[] board;
+
+bool is_point(int x) {
+  return x == -1                /* blocked square */
+    || x == 0                   /* hole */
+    || x == 1;                  /* peg (= filled hole) */
+}
+
+bool is_board(int[] B)
+{
+  //@assert \length(B) == 8*8;
+  for (int i = 0; i < 8*8; i++)
+    if (!is_point(B[i])) return false;
+  return true;
+}
+
+/* num_pegs(B) = # of pegs on B */
+int num_pegs(board B)
+//@requires is_board(B);
+{ int count = 0;
+  for (int i = 0; i < 8*8; i++)
+    if (B[i] == 1) count++;
+  return count;
+}
+
+/* init_board(B) sets up the standard English board */
+void init_board(int[] B)
+//@requires \length(B) == 8*8;
+//@ensures is_board(B);
+{
+  for (int col = 0; col < 8; col++)
+    for (int row = 0; row < 8; row++)
+      if (((2 <= col && col <= 4)
+           || (2 <= row && row <= 4))
+          && col != 7 && row != 7)
+        B[8*row+col] = 1;       /* peg in hole */
+      else
+        B[8*row+col] = -1;      /* blocked */
+  B[3*8+3] = 0;                 /* initially empty hole */
+}
+
+/* array_copy(dst, src, n) copies src[0..n) to dst[0..n) */
+void array_copy(int[] dst, int[] src, int n)
+//@requires 0 <= n && n <= \length(dst) && n <= \length(src);
+{
+  for (int i = 0; i < n; i++)
+    dst[i] = src[i];
+  return;
+}
+
+void print_board(board B)
+//@requires is_board(B);
+{
+  for (int row = 0; row < 8; row++) {
+    for (int col = 0; col < 8; col++) {
+      int x = B[8*row+col];
+      if (x == 0) print("o ");        /* o = hole */
+      else if (x == 1) print("* ");   /* * = peg */
+      else if (x == -1) print(". ");  /* . = blocked */
+    }
+    print("\n");
+  }
+  return;
+}
+
+bool is_whitespace(char c) {
+  return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
+int string2board(string s, int[] B, int i, int n)
+//@requires 0 <= i && i < n && n <= \length(B);
+{
+  int len = string_length(s);
+  int cur = 0;
+  int k = i;
+  while (k < n && cur < len) {
+    /* skip whitespace */
+    while (cur < len && is_whitespace(string_charat(s, cur)))
+      //@loop_invariant 0 <= cur && cur <= len;
+      cur++;
+    if (cur == len) return k;   /* at end of input string */
+    char c = string_charat(s, cur);
+    if (c == '.') { B[k] = -1; }      /* blocked */
+    else if (c == 'o') { B[k] = 0; }  /* hole */
+    else if (c == '*') { B[k] = 1; }  /* peg (in hole) */
+    else error(string_join("Illegal character '", 
+                           string_join(string_fromchar(c), "'")));
+    k++;    /* next array index */
+    cur++;  /* next string index */
+  }
+  return k;
+}
+
+void read_board(string filename, int[] B, int n)
+//@requires 0 <= n && n <= \length(B);
+{
+  file_t file = file_read(filename);
+  if (file == NULL) error("Error: file does not exist");
+  int i = 0;
+  while (i < n && !file_eof(file)) {
+    string line = file_readline(file);
+    i = string2board(line, B, i, n);
+  }
+  file_close(file);
+  return;
+}

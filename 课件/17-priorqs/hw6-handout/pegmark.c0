@@ -1,0 +1,128 @@
+#use <conio>
+#use <rand>
+#use <util>
+
+/***********************************************************************/
+/* Client-side implementation                                          */
+/* This should model whatever your code is doing to take your board    */
+/* and get a hash table element.                                       */
+/***********************************************************************/
+
+htelem htelem_of_board(board B) {
+  // Call your code that compresses a board into a hash table element here.
+}
+
+/***************************************/
+/* Peg solitaire: hash table benchmark */
+/***************************************/
+
+void pegmark_insert(board B, ht H) {
+  htelem E = htelem_of_board(B);
+  ht_insert(H, E);
+}
+
+int main () {
+  board B = alloc_array(int, 8*8);
+  ht H = ht_new(1000000);
+
+  /* Start with the English board */
+  init_board(B);
+  
+  /* Mostly put 0s on the board */
+  for(int i = 0; i < 64; i++) 
+    //@loop_invariant 0 <= i;
+      if(B[i] == 1 && i%7 != 2) B[i] = 0;
+  print_board(B);
+
+  println("===============");
+  println("Mini pegmark (this should be just about instantaneous)");
+  for(int j2 = 2; j2 < 56; j2 += 8) 
+    //@loop_invariant j2%8 == 2;
+    {
+      B[j2] = 1-B[j2];
+      for(int j3 = 3; j3 < 56; j3 += 8) 
+        //@loop_invariant j3%8 == 3;
+        {
+          B[j3] = 1-B[j3];
+          for(int j4 = 4; j4 < 56; j4 += 8) 
+            //@loop_invariant j4%8 == 4;
+            {
+              B[j4] = 1-B[j4];
+              for(int i = 16; i < 40; i++) 
+                //@loop_invariant 16 <= i && i%8 < 7;
+                {
+                  B[i] = 1-B[i];
+                  pegmark_insert(B, H);
+                  B[i] = 1-B[i];
+                  if(i%8 == 6) i++;
+                }
+              B[j4] = 1-B[j4];
+            }
+          B[j3] = 1-B[j3];
+        }
+      B[j2] = 1-B[j2];
+    }
+
+  println("---------------");
+  ht_stats(H);
+  println("---------------");
+  print("Total number of recorded boards (6468 expected): "); 
+  printint(ht_size(H)); println("");
+
+
+  println("===============");
+  println("Full pegmark (this should take 10-20 seconds at most)");
+  for(int i1 = 16; i1 < 40; i1++) 
+    //@loop_invariant 16 <= i1 && i1%8 < 7;
+    {
+      B[i1] = 1-B[i1];
+      for(int i2 = 16; i2 < 40; i2++) 
+        //@loop_invariant 16 <= i2 && i2%8 < 7;
+        {
+          B[i2] = 1-B[i2];
+          for(int i3 = 16; i3 < 40; i3++) 
+            //@loop_invariant 16 <= i3 && i3%8 < 7;
+            {
+              B[i3] = 1-B[i3];
+              for(int i4 = 10; i4 < 12; i4++) 
+                //@loop_invariant i4/8 == 1;
+                {
+                  B[i4] = 1-B[i4];
+                  for(int j2 = 2; j2 < 56; j2 += 8) 
+                    //@loop_invariant j2%8 == 2;
+                    {
+                      B[j2] = 1-B[j2];
+                      for(int j3 = 3; j3 < 56; j3 += 8) 
+                        //@loop_invariant j3%8 == 3;
+                        {
+                          B[j3] = 1-B[j3];
+                          for(int j4 = 4; j4 < 56; j4 += 8) 
+                            //@loop_invariant j4%8 == 4;
+                            {
+                              B[j4] = 1-B[j4];
+                              pegmark_insert(B, H);
+                              B[j4] = 1-B[j4];
+                            }
+                          B[j3] = 1-B[j3];
+                        }
+                      B[j2] = 1-B[j2];
+                    }
+                  B[i4] = 1-B[i4];
+                  if(i4%8 == 6) i4++;
+                  } 
+              B[i3] = 1-B[i3];
+              if(i3%8 == 6) i3++;
+            }
+          B[i2] = 1-B[i2];
+          if(i2%8 == 6) i2++;
+        }
+      B[i1] = 1-B[i1];
+      if(i1%8 == 6) i1++;
+    }
+
+  println("---------------");
+  ht_stats(H);
+  println("---------------");
+  print("Total number of recorded boards (652374 expected): "); 
+  return ht_size(H);
+}

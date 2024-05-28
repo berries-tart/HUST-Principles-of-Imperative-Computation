@@ -1,0 +1,12 @@
+/*
+ * Peg solitaire solver
+ *
+ * 15-122 Principles of Imperative Computation */
+
+#use <args>
+#use <conio>
+#use <util>
+
+/*
+ * Copy here your code from peg2.c0 to start
+ */

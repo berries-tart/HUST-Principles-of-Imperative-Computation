@@ -1,0 +1,45 @@
+//
+bool is_in(int x, int[] A, int lower, int upper)
+//@requires lower >= 0 && lower <= upper && upper <= \length(A);
+{
+    for (int i = lower; i < upper; i++)
+        //@loop_invariant i>=lower && i<=upper;
+        if (A[i] == x)
+            return true;
+    return false;
+}
+
+bool is_sorted(int[] A, int lower, int upper)
+//@requires lower>=0 && lower<=upper && upper<=\length(A);
+{
+    for (int i = lower; i < upper - 1; i++)
+        //@loop_invariant i>=lower;
+        if (A[i] > A[i + 1])
+            return false;
+    return true;
+}
+
+int binsearch(int x, int[] A, int left, int right)
+//@requires left >= 0 && left <= right && right < \length(A);
+//@requires is_sorted(A, left, right + 1);
+/*@ensures (\result==-1 && !is_in(x, A, left, right + 1))
+      || (\result>=left && \result<=right && A[\result]==x);
+{
+    int lower = left;
+    int upper = right;
+    while (lower < upper)
+    //@loop_invariant lower >= left && lower<=upper && upper<=right;
+    //@loop_invariant (left==0&&lower==left)||A[lower-1]<x;
+    //@loop_invariant (right==n-1&&upper==right)||A[upper+1]>x;
+    {
+        int mid = lower + (upper - lower) / 2;
+        //@assert lower<=mid && mid<=upper;
+        if (A[mid] == x)
+            return mid;
+        else if (A[mid] < x)
+            lower = mid + 1;
+        else //@assert (A[mid] > x);
+            upper = mid;
+    }
+    return -1;
+}
